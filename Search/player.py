@@ -81,7 +81,7 @@ class PlayerControllerMinimax(PlayerController):
         children = initial_tree_node.compute_and_get_children()
 
     
-        # children.sort(key=self.heuristic_eval, reverse=True)
+        children.sort(key=self.heuristic_eval, reverse=True) # prioriterar dom bästa valen
 
         # IDS
         while not timeout:
@@ -140,6 +140,7 @@ class PlayerControllerMinimax(PlayerController):
 
         elif player == 0:
             v = float('-inf')
+            children.sort(key=self.heuristic_eval, reverse=True) # prioriterar dom bästa valen
             for child in children:
                 v = max(v, self.minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
                 alpha = max(alpha, v)
@@ -148,6 +149,7 @@ class PlayerControllerMinimax(PlayerController):
 
         elif player == 1:
             v = float('inf')
+            children.sort(key=self.heuristic_eval) # prioriterar dom bästa valen, prio dom sämsta först, den behöver inte gå igenom lika många
             for child in reversed(children):
                 v = min(v, self.minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
                 beta = min(beta, v)
