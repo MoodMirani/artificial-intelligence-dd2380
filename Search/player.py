@@ -1,8 +1,5 @@
-import random
 import math
 import time
-
-# from operator import itemgetter
 
 from fishing_game_core.game_tree import Node
 from fishing_game_core.player_utils import PlayerController
@@ -80,14 +77,13 @@ class PlayerControllerMinimax(PlayerController):
         bestMove = 0
         children = initial_tree_node.compute_and_get_children()
 
-    
-        # children.sort(key=self.heuristic_eval, reverse=True)
+        children.sort(key=self.heuristic_eval, reverse=True)
 
         # IDS
         while not timeout:
             try:
                 for child in children:
-                    value = self.minimax(child, player, depth, alpha, beta, startTime, timeLimit)
+                    value = self.ab_minimax(child, player, depth, alpha, beta, startTime, timeLimit)
                     if value > startValue:
                         startValue = value
                         bestMove = child.move
@@ -100,27 +96,12 @@ class PlayerControllerMinimax(PlayerController):
 
 
     def hash(self, state):
-        '''
-        Computes the string hash of a given state, by describing state in full
-        :param state:
-        :return: hashed string of state
-        '''
         string = str(state.get_player_scores()) + str(state.get_fish_positions()) + str(state.get_hook_positions())
         hashed_string = hash(string) # 32 bit istället 64 bit
         return hashed_string
 
-    def minimax(self, node, player, depth, alpha, beta, startTime, timeLimit):
-        '''
-        MINIMAX FUNCTION with alpha-beta pruning
-        :param node: node that we are analysing
-        :param player: player that is playing and decides if we want to find min or max
-        :param depth: depth of node
-        :param alpha:
-        :param beta:
-        :param startTime:
-        :param timeLimit:
-        :return: a heuristic value that approximates a utility function of the state
-        '''
+    def ab_minimax(self, node, player, depth, alpha, beta, startTime, timeLimit):
+
 
         if (time.time() - startTime) > timeLimit:
             raise TimeoutError
@@ -139,44 +120,35 @@ class PlayerControllerMinimax(PlayerController):
             return self.heuristic_eval(node)
 
         elif player == 0:
-            v = float('-inf')
+            value = float('-inf')
             for child in children:
-                v = max(v, self.minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
-                alpha = max(alpha, v)
+                value = max(value, self.ab_minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
+                alpha = max(alpha, value)
                 if (time.time() - startTime) > timeLimit or beta <= alpha:
-                    return v
+                    return value
 
         elif player == 1:
-            v = float('inf')
+            value = float('inf')
             for child in reversed(children):
-                v = min(v, self.minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
-                beta = min(beta, v)
+                value = min(value, self.ab_minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
+                beta = min(beta, value)
                 if (time.time() - startTime) > timeLimit or beta <= alpha:
-                    return v
+                    return value
 
 
-        self.repeated_states_dict.update({key: [depth, v]})
-        return v
+        self.repeated_states_dict.update({key: [depth, value]})
+        return value
 
     def heuristic_eval(self, node):
-        '''
-        :param node: node
-        :return: returns score
-        '''
-        player = node.state.player
-        player_score, opponent_score = node.state.get_player_scores() # Spelarnas poäng
 
+        player_score, opponent_score = node.state.get_player_scores() 
         score = player_score - opponent_score
-        fish_scores = node.state.get_fish_scores()                  # Fiskarnas score
-        fish_positions = node.state.get_fish_positions()            # Fiskarnas position
-        hook_position = node.state.get_hook_positions()[player]     # krokposition för player
-
-        for fish_index, fish_pos in fish_positions.items():
-            distance = abs(fish_pos[0] - hook_position[0]) + abs(fish_pos[1] - hook_position[1]) # manhattan
-            if distance == 0:                                                                    # distance == 0, fångade fisk
-                score += (1 - (player * 2))*(fish_scores[fish_index])*10                         # fångade fiskar väger mer
+        for fish_index, fish_pos in node.state.get_fish_positions().items():
+            distance = abs(fish_pos[0] - node.state.get_hook_positions()[node.state.player][0]) + abs(fish_pos[1] - node.state.get_hook_positions()[node.state.player][1]) # manhattan
+            if distance == 0:                                                                                           # when distance == 0 means fish is caught
+                score += (1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index])*10                    # adding score
             else:
-                score += (((1 - (player * 2))*(fish_scores[fish_index]) / (distance)))     # ej delat med 0, vid player 0 = +, player 1 = -
+                score += (((1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index]) / (distance)))      # ej delat med 0, vid player 0 = +, player 1 = -
 
         return score
 
