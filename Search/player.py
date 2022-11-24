@@ -144,11 +144,11 @@ class PlayerControllerMinimax(PlayerController):
         player_score, opponent_score = node.state.get_player_scores() 
         score = player_score - opponent_score
         for fish_index, fish_pos in node.state.get_fish_positions().items():
-            distance = abs(fish_pos[0] - node.state.get_hook_positions()[node.state.player][0]) + abs(fish_pos[1] - node.state.get_hook_positions()[node.state.player][1]) # manhattan
-            if distance == 0:                                                                                           # when distance == 0 means fish is caught
-                score += (1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index])*10                    # adding score
+            distance = abs(fish_pos[0] - node.state.get_hook_positions()[node.state.player][0]) + abs(fish_pos[1] - node.state.get_hook_positions()[node.state.player][1])
+            if distance == 0:                                                                                           
+                score += (1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index])*10                    
             else:
-                score += (((1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index]) / (distance)))      # ej delat med 0, vid player 0 = +, player 1 = -
+                score += (((1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index]) / (distance)))      
 
         return score
 
