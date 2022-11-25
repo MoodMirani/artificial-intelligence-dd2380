@@ -2,8 +2,6 @@ import random
 import math
 import time
 
-# from operator import itemgetter
-
 from fishing_game_core.game_tree import Node
 from fishing_game_core.player_utils import PlayerController
 from fishing_game_core.shared import ACTION_TO_STR
@@ -25,16 +23,16 @@ class PlayerControllerHuman(PlayerController):
             if msg["game_over"]:
                 return
 
-class PlayerControllerMinimax(PlayerController):
+class PlayerControllerab_Minimax(PlayerController):
 
     def __init__(self):
         self.repeated_states_dict = {}
-        super(PlayerControllerMinimax, self).__init__()
+        super(PlayerControllerab_Minimax, self).__init__()
 
 
     def player_loop(self):
         """
-        Main loop for the minimax next move search.
+        Main loop for the ab_minimax next move search.
         :return:
         """
 
@@ -56,7 +54,7 @@ class PlayerControllerMinimax(PlayerController):
 
     def search_best_next_move(self, initial_tree_node, player):
         """
-        Use minimax (and extensions) to find best possible next move for player 0 (green boat)
+        Use ab_minimax (and extensions) to find best possible next move for player 0 (green boat)
         :param initial_tree_node: Initial game tree node
         :type initial_tree_node: game_tree.Node
             (see the Node class in game_tree.py for more information!)
@@ -64,7 +62,7 @@ class PlayerControllerMinimax(PlayerController):
         :rtype: str
         """
 
-        # EDIT THIS METHOD TO RETURN BEST NEXT POSSIBLE MODE USING MINIMAX ###
+        # EDIT THIS METHOD TO RETURN BEST NEXT POSSIBLE MODE USING ab_MINIMAX ###
 
         # NOTE: Don't forget to initialize the children of the current node
         #       with its compute_and_get_children() method! 
@@ -87,7 +85,7 @@ class PlayerControllerMinimax(PlayerController):
         while not timeout:
             try:
                 for child in children:
-                    value = self.minimax(child, player, depth, alpha, beta, startTime, timeLimit)
+                    value = self.ab_minimax(child, player, depth, alpha, beta, startTime, timeLimit)
                     if value > startValue:
                         startValue = value
                         bestMove = child.move
@@ -100,27 +98,11 @@ class PlayerControllerMinimax(PlayerController):
 
 
     def hash(self, state):
-        '''
-        Computes the string hash of a given state, by describing state in full
-        :param state:
-        :return: hashed string of state
-        '''
         string = str(state.get_player_scores()) + str(state.get_fish_positions()) + str(state.get_hook_positions())
-        hashed_string = hash(string) # 32 bit istället 64 bit
+        hashed_string = hash(string)
         return hashed_string
 
-    def minimax(self, node, player, depth, alpha, beta, startTime, timeLimit):
-        '''
-        MINIMAX FUNCTION with alpha-beta pruning
-        :param node: node that we are analysing
-        :param player: player that is playing and decides if we want to find min or max
-        :param depth: depth of node
-        :param alpha:
-        :param beta:
-        :param startTime:
-        :param timeLimit:
-        :return: a heuristic value that approximates a utility function of the state
-        '''
+    def ab_minimax(self, node, player, depth, alpha, beta, startTime, timeLimit):
 
         if (time.time() - startTime) > timeLimit:
             raise TimeoutError
@@ -142,7 +124,7 @@ class PlayerControllerMinimax(PlayerController):
             v = float('-inf')
             children.sort(key=self.heuristic_eval, reverse=True) # prioriterar dom bästa valen
             for child in children:
-                v = max(v, self.minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
+                v = max(v, self.ab_minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
                 alpha = max(alpha, v)
                 if (time.time() - startTime) > timeLimit or beta <= alpha:
                     return v
@@ -151,7 +133,7 @@ class PlayerControllerMinimax(PlayerController):
             v = float('inf')
             children.sort(key=self.heuristic_eval) # prioriterar dom bästa valen, prio dom sämsta först, den behöver inte gå igenom lika många
             for child in reversed(children):
-                v = min(v, self.minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
+                v = min(v, self.ab_minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
                 beta = min(beta, v)
                 if (time.time() - startTime) > timeLimit or beta <= alpha:
                     return v
