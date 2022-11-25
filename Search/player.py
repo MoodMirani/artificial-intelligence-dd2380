@@ -1,4 +1,3 @@
-import random
 import math
 import time
 
@@ -78,8 +77,7 @@ class PlayerControllerab_Minimax(PlayerController):
         bestMove = 0
         children = initial_tree_node.compute_and_get_children()
 
-    
-        children.sort(key=self.heuristic_eval, reverse=True) # prioriterar dom bästa valen
+        children.sort(key=self.heuristic_eval, reverse=True)
 
         # IDS
         while not timeout:
@@ -121,46 +119,35 @@ class PlayerControllerab_Minimax(PlayerController):
             return self.heuristic_eval(node)
 
         elif player == 0:
-            v = float('-inf')
-            children.sort(key=self.heuristic_eval, reverse=True) # prioriterar dom bästa valen
+            value = float('-inf')
             for child in children:
-                v = max(v, self.ab_minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
-                alpha = max(alpha, v)
+                value = max(value, self.ab_minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
+                alpha = max(alpha, value)
                 if (time.time() - startTime) > timeLimit or beta <= alpha:
-                    return v
+                    return value
 
         elif player == 1:
-            v = float('inf')
-            children.sort(key=self.heuristic_eval) # prioriterar dom bästa valen, prio dom sämsta först, den behöver inte gå igenom lika många
+            value = float('inf')
             for child in reversed(children):
-                v = min(v, self.ab_minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
-                beta = min(beta, v)
+                value = min(value, self.ab_minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
+                beta = min(beta, value)
                 if (time.time() - startTime) > timeLimit or beta <= alpha:
-                    return v
+                    return value
 
 
-        self.repeated_states_dict.update({key: [depth, v]})
-        return v
+        self.repeated_states_dict.update({key: [depth, value]})
+        return value
 
     def heuristic_eval(self, node):
-        '''
-        :param node: node
-        :return: returns score
-        '''
-        player = node.state.player
-        player_score, opponent_score = node.state.get_player_scores() # Spelarnas poäng
 
+        player_score, opponent_score = node.state.get_player_scores() 
         score = player_score - opponent_score
-        fish_scores = node.state.get_fish_scores()                  # Fiskarnas score
-        fish_positions = node.state.get_fish_positions()            # Fiskarnas position
-        hook_position = node.state.get_hook_positions()[player]     # krokposition för player
-
-        for fish_index, fish_pos in fish_positions.items():
-            distance = abs(fish_pos[0] - hook_position[0]) + abs(fish_pos[1] - hook_position[1]) # manhattan
-            if distance == 0:                                                                    # distance == 0, fångade fisk
-                score += (1 - (player * 2))*(fish_scores[fish_index])*10                         # fångade fiskar väger mer
+        for fish_index, fish_pos in node.state.get_fish_positions().items():
+            distance = abs(fish_pos[0] - node.state.get_hook_positions()[node.state.player][0]) + abs(fish_pos[1] - node.state.get_hook_positions()[node.state.player][1])
+            if distance == 0:                                                                                           
+                score += (1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index])*10                    
             else:
-                score += (((1 - (player * 2))*(fish_scores[fish_index]) / (distance)))     # ej delat med 0, vid player 0 = +, player 1 = -
+                score += (((1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index]) / (distance)))      
 
         return score
 
