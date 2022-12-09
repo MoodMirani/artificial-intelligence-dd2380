@@ -10,7 +10,7 @@ class PlayerControllerHuman(PlayerController):
         """
         Function that generates the loop of the game. In each iteration
         the human plays through the keyboard and send
-        this to the game through the sender. Then it receives an
+        this to the game through the sender. Then it receives anfrom play
         update of the game through receiver, with this it computes the
         next movement.
         :return:
@@ -22,11 +22,11 @@ class PlayerControllerHuman(PlayerController):
             if msg["game_over"]:
                 return
 
-class PlayerControllerab_Minimax(PlayerController):
+class PlayerControllerMinimax(PlayerController):
 
     def __init__(self):
         self.repeated_states_dict = {}
-        super(PlayerControllerab_Minimax, self).__init__()
+        super(PlayerControllerMinimax, self).__init__()
 
 
     def player_loop(self):
@@ -68,7 +68,7 @@ class PlayerControllerab_Minimax(PlayerController):
         # compute_and_get_children() returns a list of the child Nodes, found one level below in the game tree.
 
         startTime = time.time()
-        timeLimit = 0.07
+        timeLimit = 0.055
         timeout = False
         alpha = -math.inf
         beta = math.inf
@@ -142,8 +142,11 @@ class PlayerControllerab_Minimax(PlayerController):
 
         player_score, opponent_score = node.state.get_player_scores() 
         score = player_score - opponent_score
+
+        
+
         for fish_index, fish_pos in node.state.get_fish_positions().items():
-            distance = abs(fish_pos[0] - node.state.get_hook_positions()[node.state.player][0]) + abs(fish_pos[1] - node.state.get_hook_positions()[node.state.player][1])
+            distance = abs((node.state.get_hook_positions()[node.state.player][0] - fish_pos[0]) + (node.state.get_hook_positions()[node.state.player][1] - fish_pos[1]))
             if distance == 0:                                                                                           
                 score += (1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index])*10                    
             else:
