@@ -10,7 +10,7 @@ class PlayerControllerHuman(PlayerController):
         """
         Function that generates the loop of the game. In each iteration
         the human plays through the keyboard and send
-        this to the game through the sender. Then it receives an
+        this to the game through the sender. Then it receives anfrom play
         update of the game through receiver, with this it computes the
         next movement.
         :return:
@@ -31,7 +31,7 @@ class PlayerControllerMinimax(PlayerController):
 
     def player_loop(self):
         """
-        Main loop for the minimax next move search.
+        Main loop for the ab_minimax next move search.
         :return:
         """
 
@@ -53,7 +53,7 @@ class PlayerControllerMinimax(PlayerController):
 
     def search_best_next_move(self, initial_tree_node, player):
         """
-        Use minimax (and extensions) to find best possible next move for player 0 (green boat)
+        Use ab_minimax (and extensions) to find best possible next move for player 0 (green boat)
         :param initial_tree_node: Initial game tree node
         :type initial_tree_node: game_tree.Node
             (see the Node class in game_tree.py for more information!)
@@ -61,7 +61,7 @@ class PlayerControllerMinimax(PlayerController):
         :rtype: str
         """
 
-        # EDIT THIS METHOD TO RETURN BEST NEXT POSSIBLE MODE USING MINIMAX ###
+        # EDIT THIS METHOD TO RETURN BEST NEXT POSSIBLE MODE USING ab_MINIMAX ###
 
         # NOTE: Don't forget to initialize the children of the current node
         #       with its compute_and_get_children() method! 
@@ -97,11 +97,10 @@ class PlayerControllerMinimax(PlayerController):
 
     def hash(self, state):
         string = str(state.get_player_scores()) + str(state.get_fish_positions()) + str(state.get_hook_positions())
-        hashed_string = hash(string) # 32 bit istället 64 bit
+        hashed_string = hash(string)
         return hashed_string
 
     def ab_minimax(self, node, player, depth, alpha, beta, startTime, timeLimit):
-
 
         if (time.time() - startTime) > timeLimit:
             raise TimeoutError
@@ -143,8 +142,11 @@ class PlayerControllerMinimax(PlayerController):
 
         player_score, opponent_score = node.state.get_player_scores() 
         score = player_score - opponent_score
+
+        
+
         for fish_index, fish_pos in node.state.get_fish_positions().items():
-            distance = abs(fish_pos[0] - node.state.get_hook_positions()[node.state.player][0]) + abs(fish_pos[1] - node.state.get_hook_positions()[node.state.player][1])
+            distance = abs((node.state.get_hook_positions()[node.state.player][0] - fish_pos[0]) + (node.state.get_hook_positions()[node.state.player][1] - fish_pos[1]))
             if distance == 0:                                                                                           
                 score += (1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index])*10                    
             else:
