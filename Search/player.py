@@ -68,7 +68,7 @@ class PlayerControllerMinimax(PlayerController):
         # compute_and_get_children() returns a list of the child Nodes, found one level below in the game tree.
 
         startTime = time.time()
-        timeLimit = 0.07
+        timeLimit = 0.055
         timeout = False
         alpha = -math.inf
         beta = math.inf
