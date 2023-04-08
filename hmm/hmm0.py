@@ -20,7 +20,7 @@ def make_matrix(row):
 # create matrices
 transition_matrix = make_matrix(stdin.readline())
 emission_matrix = make_matrix(stdin.readline())
-ispd = make_matrix(stdin.readline())
+pi = make_matrix(stdin.readline())
 
 def multiply_matrices(m1, m2):
     # initialise new empty matrix
@@ -40,7 +40,7 @@ def multiply_matrices(m1, m2):
     return matrix
 
 # multiply the transition matrix with our current estimate of states
-question2 = multiply_matrices(ispd, transition_matrix)
+question2 = multiply_matrices(pi, transition_matrix)
 
 # result multiplied with the observation matrix.
 question3 = multiply_matrices(question2, emission_matrix)

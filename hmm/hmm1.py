@@ -24,26 +24,24 @@ def multiply_matrices(m1, m2):
 def get_columns(matrix, col):
     return [row[col] for row in matrix]
 
-# create matrices
-A_ = make_matrix(stdin.readline())
-B_ = make_matrix(stdin.readline())
-PI_ = make_matrix(stdin.readline())
-OS_ = stdin.readline().split()
-OS_n = []
-for i in OS_:
-    OS_n.append(int(i))
-OS_n.pop(0)
-print(OS_n)
-
-
-alpha_1 = multiply_matrices(PI_[0], get_columns(B_, OS_n[0]))
-
-def forward_algorithm(alpha, OS):
-    if len(OS) == 0:
+def forward_algorithm(alpha, emissions):
+    if len(emissions) == 0:
         print(round(sum(alpha), 6))
         return sum(alpha)
-    sum_term = [sum(multiply_matrices(alpha, get_columns(A_, i))) for i in range(len(A_[0]))]
-    current_alpha = multiply_matrices(sum_term, get_columns(B_, OS[0]))
-    forward_algorithm(current_alpha, OS[1:])
+    sumList = [sum(multiply_matrices(alpha, get_columns(transition_matrix, i))) for i in range(len(transition_matrix[0]))]
+    current_alpha = multiply_matrices(sumList, get_columns(emission_matrix, emissions[0]))
+    forward_algorithm(current_alpha, emissions[1:])
 
-forward_algorithm(alpha_1, OS_n[1:])
+# create matrices
+transition_matrix = make_matrix(stdin.readline())
+emission_matrix = make_matrix(stdin.readline())
+pi = make_matrix(stdin.readline())
+emissions = stdin.readline().split()
+emission_n = []
+for i in emissions:
+    emission_n.append(int(i))
+emission_n.pop(0)
+
+alpha_1 = multiply_matrices(pi[0], get_columns(emission_matrix, emission_n[0]))
+
+forward_algorithm(alpha_1, emission_n[1:])
