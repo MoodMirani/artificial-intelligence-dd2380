@@ -24,24 +24,28 @@ def multiply_matrices(m1, m2):
 def get_columns(matrix, col):
     return [row[col] for row in matrix]
 
-def forward_algorithm(alpha, emissions):
-    if len(emissions) == 0:
-        print(round(sum(alpha), 6))
-        return sum(alpha)
-    sumList = [sum(multiply_matrices(alpha, get_columns(transition_matrix, i))) for i in range(len(transition_matrix[0]))]
-    current_alpha = multiply_matrices(sumList, get_columns(emission_matrix, emissions[0]))
-    forward_algorithm(current_alpha, emissions[1:])
+def forward_algorithm():
+    # we start by initialising alpha with the initial probability distribution
+    alpha = multiply_matrices(pi[0], get_columns(emissions_matrix_B, emission_sequence[0]))
+    print(alpha)
+    emission_sequence_length = len(emission_sequence)
+    for t in range(1, emission_sequence_length):
+        test = 1
+    return alpha
 
-# create matrices
-transition_matrix = make_matrix(stdin.readline())
-emission_matrix = make_matrix(stdin.readline())
+# create matrices 
+transition_matrix_A = make_matrix(stdin.readline())
+emissions_matrix_B = make_matrix(stdin.readline())
 pi = make_matrix(stdin.readline())
-emissions = stdin.readline().split()
-emission_n = []
-for i in emissions:
-    emission_n.append(int(i))
-emission_n.pop(0)
+emission_sequence = stdin.readline().split()
+for i in range(len(emission_sequence)):
+    emission_sequence[i] = (int(emission_sequence[i]))
+emission_sequence.pop(0)
 
-alpha_1 = multiply_matrices(pi[0], get_columns(emission_matrix, emission_n[0]))
 
-forward_algorithm(alpha_1, emission_n[1:])
+print("pi[0]: ", pi[0])
+print("emissions[0]: ", pi[0])
+print("emissions_matrix: ", emissions_matrix_B)
+alpha = multiply_matrices(pi[0], get_columns(emissions_matrix_B, emission_sequence[0]))
+
+forward_algorithm()

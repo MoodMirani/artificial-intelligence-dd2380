@@ -26,8 +26,15 @@
 ; - z: another building
 (:action move
     :parameters ( ?x ?y ?z )
-    :precondition (and (PERSON ?x) (BUILDING ?y) (BUILDING ?z) (is-person-at ?x ?y)(IS-CONNECTED ?y ?z) )
-    :effect (and (is-person-at ?x ?z) (not (is-person-at ?x ?y)))
+    :precondition (and 
+    (PERSON ?x) 
+    (BUILDING ?y) 
+    (BUILDING ?z) 
+    (is-person-at ?x ?y)
+    (IS-CONNECTED ?y ?z))
+    :effect (and 
+    (is-person-at ?x ?z)
+    (not (is-person-at ?x ?y)))
 )
 
 ; The student or the teacher x have lunch at the building y that has a restaurant.
@@ -39,8 +46,14 @@
 (:action have-lunch 
 	; WRITE HERE THE CODE FOR THIS ACTION
 	:parameters (?x ?y)
-	:precondition (and (PERSON ?x) (BUILDING ?y) (HAS-RESTURANT ?y) (is-person-at ?x ?y))
-	:effect (and (had-lunch ?x))
+	:precondition (and 
+	(PERSON ?x) 
+	(BUILDING ?y)
+	(HAS-RESTURANT ?y)
+	(is-person-at ?x ?y)
+	(not (had-lunch ?x)))
+	:effect (and 
+	(had-lunch ?x))
 )
 
 ; The student x attends the MORNING lecture w thaught by teacher y inside the building z
@@ -53,9 +66,18 @@
 ; - w: a lecture
 (:action attend-morning-lecture
 	; WRITE HERE THE CODE FOR THIS ACTION
-	:parameters ( ?x ?y ?z )
-	:precondition (and (IS-STUDENT ?x) (LECTURE ?y) (IS-MORNING ?y) (BUILDING ?z) (is-person-at ?x ?z) (IS-LECTURE-AT ?y ?z))
-	:effect (and (attended-lecture ?x ?y) (not (is-person-at ?x ?z)))
+	:parameters ( ?x ?y ?z ?w)
+	:precondition (and 
+	(PERSON ?x)
+	(IS-STUDENT ?x)
+	(BUILDING ?z)
+	(IS-LECTURE-AT ?w ?z)
+	(teaches-lecture ?y ?w)
+	(IS-MORNING ?w)
+	(is-person-at ?x ?z)
+	(not (had-lunch ?x)))
+	:effect (and 
+	(attended-lecture ?x ?w))
 )
 
 ; The student x attends the AFTERNOON lecture w thaught by teacher y inside the building z
@@ -68,20 +90,17 @@
 ; - w: a lecture
 (:action attend-afternoon-lecture
 	; WRITE HERE THE CODE FOR THIS ACTION
-	 :parameters (?x ?y ?z ?w)
+	:parameters (?x ?y ?z ?w)
     :precondition (and
-        ; The student is a student and is in building z
-        (IS-STUDENT ?x) (is-person-at ?x ?z)
-        ; The teacher is a teacher and teaches the lecture w
-        (IS-TEACHER ?y) (teaches-lecture ?y ?w)
-        ; The lecture w takes place in building z in the afternoon
-        (IS-AFTERNOON ?w) (IS-LECTURE-AT ?w ?z)
-        ; The student has had lunch
-        (had-lunch ?x)
-        ; The student has not attended this lecture before
-        
-    )
-    :effect (attended-lecture ?x ?w)
+    (PERSON ?x)
+    (IS-STUDENT ?x)
+    (BUILDING ?z)
+    (IS-LECTURE-AT ?w ?z)
+    (teaches-lecture ?y ?w)
+    (IS-AFTERNOON ?w)
+    (is-person-at ?x ?z)
+    (had-lunch ?x))
+    :effect (and
+    (attended-lecture ?x ?w))
 )
-
 )

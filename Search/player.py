@@ -76,7 +76,6 @@ class PlayerControllerMinimax(PlayerController):
         depth = 0
         bestMove = 0
         children = initial_tree_node.compute_and_get_children()
-
         children.sort(key=self.heuristic_eval, reverse=True)
 
         # IDS
@@ -94,26 +93,13 @@ class PlayerControllerMinimax(PlayerController):
                 timeout = True
         return ACTION_TO_STR[bestMove]
 
-
-    def hash(self, state):
-        string = str(state.get_player_scores()) + str(state.get_fish_positions()) + str(state.get_hook_positions())
-        hashed_string = hash(string)
-        return hashed_string
-
     def ab_minimax(self, node, player, depth, alpha, beta, startTime, timeLimit):
-
         if (time.time() - startTime) > timeLimit:
             raise TimeoutError
-
-        # Repeated state check
-        key = self.hash(node.state)
-        if key in self.repeated_states_dict and self.repeated_states_dict[key][0] >= depth:
-            return self.repeated_states_dict[key][1]
 
         # move ordering
         children = node.compute_and_get_children()
         children.sort(key=self.heuristic_eval, reverse=True)
-
 
         if (time.time() - startTime) > timeLimit or len(children) == 0 or depth == 0:
             return self.heuristic_eval(node)
@@ -123,7 +109,7 @@ class PlayerControllerMinimax(PlayerController):
             for child in children:
                 value = max(value, self.ab_minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
                 alpha = max(alpha, value)
-                if (time.time() - startTime) > timeLimit or beta <= alpha:
+                if beta <= alpha:
                     return value
 
         elif player == 1:
@@ -131,27 +117,20 @@ class PlayerControllerMinimax(PlayerController):
             for child in reversed(children):
                 value = min(value, self.ab_minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
                 beta = min(beta, value)
-                if (time.time() - startTime) > timeLimit or beta <= alpha:
+                if beta <= alpha:
                     return value
-
-
-        self.repeated_states_dict.update({key: [depth, value]})
         return value
 
     def heuristic_eval(self, node):
-
         player_score, opponent_score = node.state.get_player_scores() 
         score = player_score - opponent_score
-
-        
 
         for fish_index, fish_pos in node.state.get_fish_positions().items():
             distance = abs((node.state.get_hook_positions()[node.state.player][0] - fish_pos[0]) + (node.state.get_hook_positions()[node.state.player][1] - fish_pos[1]))
             if distance == 0:                                                                                           
-                score += (1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index])*10                    
+                score += (1 - node.state.player) * node.state.get_fish_scores()[fish_index]                   
             else:
-                score += (((1 - (node.state.player * 2))*(node.state.get_fish_scores()[fish_index]) / (distance)))      
-
+                score += ((1 - node.state.player) * node.state.get_fish_scores()[fish_index]) / distance    
         return score
 
 
