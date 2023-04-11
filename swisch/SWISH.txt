@@ -32,29 +32,35 @@ friends(S1, S2, Ls) :-
     member(p(S2, _, Y, _, _),Ls),
     not(S1 == S2),
     X = Y.
-% The facts:
 fact1(Ls) :- 
     member(p(s4,_,u,_,_), Ls).
 fact2(Ls) :- 
-%   fill here
+    member(p(s2,_,_,bike,_), Ls).
 fact3(Ls) :- 
-%   fill here
+    member(p(s3,electro,_,_,_), Ls).
 fact4(Ls) :-
-%   fill here
+    member(p(_,_,_,walk,ostermalm), Ls).
 fact5(Ls) :-
-%   fill here
+    friends(s1, s3, Ls).
 fact6(Ls) :-
-%   fill here
+    member(p(_,_,e,_,_), Ls),
+    member(p(_,_,e,_,_), Ls),
+    member(p(_,_,u,_,_), Ls),
+	member(p(_,_,u,_,_), Ls).
 fact7(Ls) :-
-%   fill here
+    member(p(_,data,_,bus,kungsholmen), Ls).
 fact8(Ls) :-
-%   fill here
-fact8(Ls) :-
-%   fill here
+    member(p(_,physics,u,_,_), Ls),
+	member(p(_,machine,u,_,_), Ls),
+	not(member(p(_,data,u,_,_), Ls)),
+	not(member(p(_,electro,u,_,_), Ls)).
 fact9(Ls) :- 
-%   fill here
+    member(p(_,electro,_,_,ostermalm), Ls).
 fact10(Ls) :-
-%   fill here
+    member(p(X,_,_,bike,_), Ls),
+	member(p(Y,_,_,_,norrmalm), Ls),
+	friends(X, Y, Ls).
+	
 % Problem:
 students(Ls) :-
     length(Ls, 4),                      %There are 4 students in our list Ls
