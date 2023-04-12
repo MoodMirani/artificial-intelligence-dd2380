@@ -24,24 +24,49 @@ def multiply_matrices(m1, m2):
 def get_columns(matrix, col):
     return [row[col] for row in matrix]
 
-def forward_algorithm(alpha, emissions):
-    if len(emissions) == 0:
-        print(round(sum(alpha), 6))
-        return sum(alpha)
-    sumList = [sum(multiply_matrices(alpha, get_columns(transition_matrix, i))) for i in range(len(transition_matrix[0]))]
-    current_alpha = multiply_matrices(sumList, get_columns(emission_matrix, emissions[0]))
-    forward_algorithm(current_alpha, emissions[1:])
+def forward_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequence):
+    T = len(emission_sequence) # number of observations
+    N = len(pi) # number of possible states
 
-# create matrices
-transition_matrix = make_matrix(stdin.readline())
-emission_matrix = make_matrix(stdin.readline())
-pi = make_matrix(stdin.readline())
-emissions = stdin.readline().split()
-emission_n = []
-for i in emissions:
-    emission_n.append(int(i))
-emission_n.pop(0)
+    delta = [] 
+    for i in range(T):
+        delta.append([]) 
 
-alpha_1 = multiply_matrices(pi[0], get_columns(emission_matrix, emission_n[0]))
+    delta_idx = []
+    for i in range(T):
+        delta_idx.append([]) 
+    
+    for i in range(N): # calculate alpha at step 1, with pi
+        delta[0].append(emissions_matrix_B[i][emission_sequence[0]]*pi[i])
 
-forward_algorithm(alpha_1, emission_n[1:])
+    # compute delta and delta_idx
+    for t in range(1, T): 
+        for x in range(N):
+            emission = emission_sequence[t] # extract the next observation from the sequence
+            emission_probability = emissions_matrix_B[x][emission] # find the probability of that observation at state x
+            previous_emission_probabilities = [] 
+            for j in range(N):
+                previous_emission_probabilities.append(transition_matrix_A[j][x] * delta[t - 1][j] * emission_probability) # recurrence, we skip calculations already made
+            
+            delta[t].append(max(previous_emission_probabilities))
+            delta_idx[t].append(max(previous_emission_probabilities))
+
+    state_sequence = [max(delta[T-1])[0]]
+    return delta
+        
+  
+def main():
+    # create matrices 
+    transition_matrix_A = make_matrix(stdin.readline())
+    emissions_matrix_B = make_matrix(stdin.readline())
+    pi = make_matrix(stdin.readline())[0]
+    emission_sequence = stdin.readline().split()
+
+    # format the emission sequence array
+    for i in range(len(emission_sequence)):
+        emission_sequence[i] = (int(emission_sequence[i]))
+    emission_sequence.pop(0)
+
+    print(sum(forward_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequence)[-1]))
+
+main()

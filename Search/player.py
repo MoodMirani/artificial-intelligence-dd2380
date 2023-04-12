@@ -1,4 +1,3 @@
-import math
 import time
 
 from fishing_game_core.game_tree import Node
@@ -46,10 +45,10 @@ class PlayerControllerMinimax(PlayerController):
             node = Node(message=msg, player=0)
 
             # Possible next moves: "stay", "left", "right", "up", "down"
-            bestMove = self.search_best_next_move(initial_tree_node=node, player=0)
+            best_move = self.search_best_next_move(initial_tree_node=node, player=0)
 
             # Execute next action
-            self.sender({"action": bestMove, "search_time": None})
+            self.sender({"action": best_move, "search_time": None})
 
     def search_best_next_move(self, initial_tree_node, player):
         """
@@ -70,11 +69,11 @@ class PlayerControllerMinimax(PlayerController):
         startTime = time.time()
         timeLimit = 0.055
         timeout = False
-        alpha = -math.inf
-        beta = math.inf
-        startValue = -math.inf                               
+        alpha = float('-inf')
+        beta = float('inf')
+        currentValue = float('-inf')                              
         depth = 0
-        bestMove = 0
+        nextMove = 0
         children = initial_tree_node.compute_and_get_children()
         children.sort(key=self.heuristic_eval, reverse=True)
 
@@ -83,33 +82,30 @@ class PlayerControllerMinimax(PlayerController):
             try:
                 for child in children:
                     value = self.ab_minimax(child, player, depth, alpha, beta, startTime, timeLimit)
-                    if value > startValue:
-                        startValue = value
-                        bestMove = child.move
+                    if value > currentValue:
+                        currentValue = value
+                        nextMove = child.move
                 depth += 1
                 if (time.time() - startTime) > timeLimit:
                     raise TimeoutError
             except:
                 timeout = True
-        return ACTION_TO_STR[bestMove]
+        return ACTION_TO_STR[nextMove]
 
     def ab_minimax(self, node, player, depth, alpha, beta, startTime, timeLimit):
-        if (time.time() - startTime) > timeLimit:
-            raise TimeoutError
-
         # move ordering
         children = node.compute_and_get_children()
         children.sort(key=self.heuristic_eval, reverse=True)
 
         if (time.time() - startTime) > timeLimit or len(children) == 0 or depth == 0:
             return self.heuristic_eval(node)
-
+        
         elif player == 0:
             value = float('-inf')
-            for child in children:
+            for child in children: # children are positions that can be reached
                 value = max(value, self.ab_minimax(child, 1, depth - 1, alpha, beta, startTime, timeLimit))
                 alpha = max(alpha, value)
-                if beta <= alpha:
+                if beta <= alpha: # β prune
                     return value
 
         elif player == 1:
@@ -117,7 +113,7 @@ class PlayerControllerMinimax(PlayerController):
             for child in reversed(children):
                 value = min(value, self.ab_minimax(child, 0, depth - 1, alpha, beta, startTime, timeLimit))
                 beta = min(beta, value)
-                if beta <= alpha:
+                if beta <= alpha: # α prune
                     return value
         return value
 
@@ -128,7 +124,7 @@ class PlayerControllerMinimax(PlayerController):
         for fish_index, fish_pos in node.state.get_fish_positions().items():
             distance = abs((node.state.get_hook_positions()[node.state.player][0] - fish_pos[0]) + (node.state.get_hook_positions()[node.state.player][1] - fish_pos[1]))
             if distance == 0:                                                                                           
-                score += (1 - node.state.player) * node.state.get_fish_scores()[fish_index]                   
+                score += (1 - node.state.player) * node.state.get_fish_scores()[fish_index]                 
             else:
                 score += ((1 - node.state.player) * node.state.get_fish_scores()[fish_index]) / distance    
         return score
