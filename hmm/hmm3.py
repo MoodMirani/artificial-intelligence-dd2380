@@ -1,8 +1,11 @@
 import math
+import os
 from sys import stdin
+import sys
 
 def make_matrix(row):
-    elements = row.split(" ")
+    elements = row.strip("  ").split(" ")
+    print(elements)
     rows = int(elements[0])
     columns = int(elements[1])
     matrix = []
@@ -211,11 +214,22 @@ def baum_welch(A_estimate, B_estimate, pi_estimate, emission_sequence, K, iterat
         
   
 def main():
+
+    # read from file
+    file = open(os.path.join(sys.path[0], "hmm3.in"), "r")
+
+    transition_matrix_A = make_matrix(file.readline())
+    emissions_matrix_B = make_matrix(file.readline())
+    pi = make_matrix(file.readline())[0]
+    emission_sequence = file.readline().split()
+
+    
+    # For kattis
     # create matrices 
-    transition_matrix_A = make_matrix(stdin.readline())
-    emissions_matrix_B = make_matrix(stdin.readline())
-    pi = make_matrix(stdin.readline())[0]
-    emission_sequence = stdin.readline().split()
+    # transition_matrix_A = make_matrix(stdin.readline())
+    # emissions_matrix_B = make_matrix(stdin.readline())
+    # pi = make_matrix(stdin.readline())[0]
+    # emission_sequence = stdin.readline().split()
 
     # format the emission sequence array
     for i in range(len(emission_sequence)):
