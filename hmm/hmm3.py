@@ -3,37 +3,12 @@ import os
 from sys import stdin
 import sys
 
-def make_matrix(row):
-    elements = row.strip("  ").split(" ")
-    print(elements)
-    rows = int(elements[0])
-    columns = int(elements[1])
-    matrix = []
-    values = elements[2:]
-
-    for r in range(rows):
-        a_row = []
-        for c in range(columns):
-            a_row.append(float(values[r*columns+c]))
-        matrix.append(a_row)
-    return matrix
-
-def print_matrix(A):
-    for row in A:
-        print(*row)
-
-def calculate_log_probability(c):
-    log_probability = 0
-    for i in range(len(c)):
-        log_probability += math.log(c[i])
-    return -log_probability
-
 def estimate_hmm_model(di_gamma, gamma, emission_sequence, K):
     # K is number of possible observation types
     T = len(emission_sequence)
     N = len(di_gamma[0])
 
-    pi_estimate = [gamma[0][:]] # estimate of initial state probabilities
+    pi_estimate = gamma[0][:] # estimate of initial state probabilities
 
     B_estimate = [] # estimate of emission matrix, eventually N x K
     for i in range(N):
@@ -54,7 +29,7 @@ def estimate_hmm_model(di_gamma, gamma, emission_sequence, K):
             for t in range(T - 1):
                 numerator += di_gamma[t][i][j]
             A_estimate[i].append(numerator / denominator) # add the estimated value to the transition matrix A_estimate
-
+    
     # estimate each element of B
     for i in range(N):
         denominator = 0.0 # calculate the denominator
@@ -67,15 +42,17 @@ def estimate_hmm_model(di_gamma, gamma, emission_sequence, K):
                 if emission_sequence[t] == k:
                     indicator_sum += gamma[t][i]
             B_estimate[i].append(indicator_sum / denominator) # add the estimated value to the emission matrix B_estimate
-
     return A_estimate, B_estimate, pi_estimate
 
 def calculate_di_gamma_matrices(transition_matrix_A, emissions_matrix_B, alpha, beta, emission_sequence):
     T = len(emission_sequence) # number of observations
     N = len(transition_matrix_A[0]) # number of possible states
 
-    di_gamma = [[[] for j in range(N)] for i in range(T)] # will eventually be T x N x N
-    gamma = [[] for i in range(T - 1)] # will eventually be T x N
+    di_gamma = [[[] for j in range(N)] for i in range(T)] # T x N x N
+
+    gamma = []
+    for i in range(T - 1):
+        gamma.append([])
 
     for t in range(T - 1): # iterate over each observation except the last one
         for i in range(N): # iterate over each possible state
@@ -89,7 +66,6 @@ def calculate_di_gamma_matrices(transition_matrix_A, emissions_matrix_B, alpha, 
                 p4 = beta[t + 1][j]
                 product = p1 * p2 * p3 * p4 # (already scaled so we don't divide by sum(alpha[T - 1]))
                 di_gamma[t][i].append(product) # # Store intermediate probabilities in di-gamma matrix
-                
                 gamma_sum += product # # Update gamma sum
 
             gamma[t].append(gamma_sum) # add gamma_sum for this state i and time t
@@ -107,7 +83,7 @@ def backward_algorithm(transition_matrix_A, emissions_matrix_B, emission_sequenc
 
     # create an empty list for beta for each time step
     beta = [] 
-    for i in range(T):
+    for i in range(T - 1):
         beta.append([]) 
 
     # initialize the last row of beta with scaling factors
@@ -126,10 +102,8 @@ def backward_algorithm(transition_matrix_A, emissions_matrix_B, emission_sequenc
             previous_transition_probability_sum = 0.0
             for j in range(N):
                 previous_transition_probability_sum += (beta[t + 1][j] * transition_matrix_A[i][j] * emissions_matrix_B[j][emission])
-
             # append the result, scaled by the same factor as the corresponding c value, to beta
             beta[t].append(previous_transition_probability_sum * c[t])
-
     # return the list of backward probabilities for each hidden state and time step
     return beta
 
@@ -180,7 +154,6 @@ def forward_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequ
     # return the list of forward probabilities for each hidden state and time step, as well as the scaling factors
     return alpha, c
 
-
 def baum_welch(A_estimate, B_estimate, pi_estimate, emission_sequence, K, iteration_limit=100):
     iteration = 0
     previous_log_probability = float("-inf")
@@ -210,27 +183,61 @@ def baum_welch(A_estimate, B_estimate, pi_estimate, emission_sequence, K, iterat
         # Step 6: Repeat until convergence or maximum number of iterations is reached
         iteration += 1
 
-    return A_estimate, B_estimate, pi_estimate, iteration
-        
+    return A_estimate, B_estimate, pi_estimate
+
+# Represents the sum of the logarithmic emission probabilities. 
+def calculate_log_probability(c):
+    log_probability = 0
+    for i in range(len(c)):
+        log_probability += math.log(c[i])
+    return -log_probability # The negative of this sum gives the logarithmic probability of the entire emission sequence.
+
+def round_matrix(matrix):
+    for row in range(len(matrix)):
+        for column in range(len(matrix[0])):
+            matrix[row][column] = round(matrix[row][column], 7)
+    return matrix
+
+def make_matrix(row):
+    elements = row.strip("  ").split(" ")
+    rows = int(elements[0])
+    columns = int(elements[1])
+    matrix = []
+    values = elements[2:]
+
+    for r in range(rows):
+        a_row = []
+        for c in range(columns):
+            a_row.append(float(values[r*columns+c]))
+        matrix.append(a_row)
+    return matrix
+
+def create_matrix_string(matrix):
+    rows = len(matrix)
+    columns = len(matrix[0])
+    stdout = str(rows) + " " + str(columns)
+    for i in range(rows):
+        for j in range(columns):
+            stdout += " " + str(matrix[i][j])
+    return stdout
   
 def main():
-
     # read from file
-    file = open(os.path.join(sys.path[0], "hmm3.in"), "r")
+    
+    file = open(os.path.join(sys.path[0], "hmm3_sample_3.in"), "r")
 
     transition_matrix_A = make_matrix(file.readline())
     emissions_matrix_B = make_matrix(file.readline())
     pi = make_matrix(file.readline())[0]
     emission_sequence = file.readline().split()
-
-    
+    """
     # For kattis
-    # create matrices 
-    # transition_matrix_A = make_matrix(stdin.readline())
-    # emissions_matrix_B = make_matrix(stdin.readline())
-    # pi = make_matrix(stdin.readline())[0]
-    # emission_sequence = stdin.readline().split()
-
+    # create matrices
+    transition_matrix_A = make_matrix(stdin.readline())
+    emissions_matrix_B = make_matrix(stdin.readline())
+    pi = make_matrix(stdin.readline())[0]
+    emission_sequence = stdin.readline().split()
+"""
     # format the emission sequence array
     for i in range(len(emission_sequence)):
         emission_sequence[i] = (int(emission_sequence[i]))
@@ -238,8 +245,7 @@ def main():
 
     emission_types = len(emissions_matrix_B[0])
     A_estimate, B_estimate, pi_estimate = baum_welch(transition_matrix_A, emissions_matrix_B, pi, emission_sequence, emission_types, iteration_limit=100)
-    print_matrix(pi_estimate)
-    print_matrix(A_estimate)
-    print_matrix(B_estimate)
+    print("          ", create_matrix_string(round_matrix(A_estimate)))
+    print(create_matrix_string(round_matrix(B_estimate)))
 
 main()
