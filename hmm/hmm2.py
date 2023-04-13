@@ -1,8 +1,5 @@
 from sys import stdin
 
-# read input from file
-#document = open("input0.in", "r")
-
 def make_matrix(row):
     elements = row.split(" ")
     rows = int(elements[0])
@@ -17,42 +14,50 @@ def make_matrix(row):
         matrix.append(a_row)
     return matrix
 
-
-def multiply_matrices(m1, m2):
-    return [i * j for i, j in zip(m1, m2)]
-
-def get_columns(matrix, col):
-    return [row[col] for row in matrix]
-
-def forward_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequence):
+def viterbi_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequence):
+    # Determine the number of observations and possible states.
     T = len(emission_sequence) # number of observations
     N = len(pi) # number of possible states
 
+    # Initialize delta and delta_index matrices.
     delta = [] 
     for i in range(T):
         delta.append([]) 
 
-    delta_idx = []
+    delta_index = []
     for i in range(T):
-        delta_idx.append([]) 
-    
-    for i in range(N): # calculate alpha at step 1, with pi
+        delta_index.append([]) 
+
+    # Calculate delta at step 1 with pi and emissions_matrix_B.
+    for i in range(N):
         delta[0].append(emissions_matrix_B[i][emission_sequence[0]]*pi[i])
 
-    # compute delta and delta_idx
-    for t in range(1, T): 
+    # Compute delta and delta_index.
+    for t in range(1, T):
         for x in range(N):
-            emission = emission_sequence[t] # extract the next observation from the sequence
-            emission_probability = emissions_matrix_B[x][emission] # find the probability of that observation at state x
-            previous_emission_probabilities = [] 
-            for j in range(N):
-                previous_emission_probabilities.append(transition_matrix_A[j][x] * delta[t - 1][j] * emission_probability) # recurrence, we skip calculations already made
-            
-            delta[t].append(max(previous_emission_probabilities))
-            delta_idx[t].append(max(previous_emission_probabilities))
+            # Find the probability of the current observation at state x.
+            emission_probability = emissions_matrix_B[x][emission_sequence[t]]
 
-    state_sequence = [max(delta[T-1])[0]]
-    return delta
+            previous_emission_probabilities = []
+            # Compute the probability of transitioning from each possible previous state to the current state x.
+            for j in range(N):
+                previous_emission_probabilities.append(transition_matrix_A[j][x] * delta[t - 1][j] * emission_probability)
+
+            # Find the index and value of the highest probability in previous_emission_probabilities.
+            max_prob = max(previous_emission_probabilities)
+            max_index = previous_emission_probabilities.index(max_prob)
+
+            # Append the index and value of the highest probability to delta_index and delta, respectively.
+            delta_index[t].append(max_index)
+            delta[t].append(max_prob)
+
+    # Find the index of the highest probability at the last time step to start working backwards.
+    state_sequence = [max(enumerate(delta[-1]), key=lambda x: x[1])[0]]
+
+    # Use delta_idx to work backwards and determine the state sequence.
+    for t in range(T - 2, -1, -1):
+        state_sequence.insert(0, delta_index[t + 1][state_sequence[0]])
+    return state_sequence
         
   
 def main():
@@ -67,6 +72,11 @@ def main():
         emission_sequence[i] = (int(emission_sequence[i]))
     emission_sequence.pop(0)
 
-    print(sum(forward_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequence)[-1]))
+    state_sequence = viterbi_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequence)
+    state_sequence_string = ""
+    for state in state_sequence:
+        state_sequence_string = state_sequence_string + " " + str(state)
+    
+    print(state_sequence_string)
 
 main()

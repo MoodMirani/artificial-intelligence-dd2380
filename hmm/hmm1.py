@@ -14,9 +14,6 @@ def make_matrix(row):
         matrix.append(a_row)
     return matrix
 
-def multiply_matrices(m1, m2):
-    return [i * j for i, j in zip(m1, m2)]
-
 def forward_algorithm(transition_matrix_A, emissions_matrix_B, pi, emission_sequence):
     T = len(emission_sequence) # number of observations
     N = len(pi) # number of possible states
